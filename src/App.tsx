@@ -26,6 +26,7 @@ var dataObject: ToDoItem ={
 } 
 
 function LeftPositionedTimeline(props: ButtonProps) {
+ 
   return (
     <TimelineItem>
       <TimelineSeparator>
@@ -38,17 +39,18 @@ function LeftPositionedTimeline(props: ButtonProps) {
 }
 
 function App() {
+  const[idData,setIdData] = useState(1);
   const [data, setData] = useState([] as ToDoItem[]);
-  const [update,setUpdate] = useState(false);
 
   useEffect(() => {
     GetValues()
-  }, [update]);
+  }, []);
 
   async function GetValues() {
     const dataFetched  = await fetch("https://localhost:7129/api/TodoItems");
     const dataToGet = await dataFetched.json() as ToDoItem[];
     setData(dataToGet);
+    setIdData(dataToGet[1].id);
   }
 
   async function postValues(item:ToDoItem){
@@ -59,20 +61,31 @@ function App() {
       },
       body: JSON.stringify(item),
     });
-    setUpdate(true);
+    GetValues();
+  }
+
+  async function deleteValues(id:number){
+    const response = await fetch(`https://localhost:7129/api/TodoItems/${id}`,{
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(id),
+    });
+    GetValues();
   }
 
   return (
-
     <>
       <Timeline position="left">
         {
-          data.map((item) => <div>{<LeftPositionedTimeline id={item.id} />}</div>)
+          data.map((item) => <div>{<LeftPositionedTimeline id={item.id}/>}</div>)
         }
       </Timeline>
       <button onClick={()=>postValues(dataObject)}>
         Click me
       </button>
+      <button onClick={()=> deleteValues(idData)}>I will delete something {idData}</button>
     </>
   )
 }
